@@ -10,7 +10,7 @@
 
 window.ChangyanMsg = (function(){
     "use strict"
-    var prefix = "[PROJECT_NAME+NES_NAME]",// 消息前缀
+    var prefix = "[PROJECT_NAME]",// 消息前缀
         supportPostMessage = 'postMessage' in window;
     function ChangyanMsg(projectName){
         /**
@@ -27,7 +27,8 @@ window.ChangyanMsg = (function(){
 
     // 初始化消息监听回调函数
     ChangyanMsg.prototype.init = function(){
-        var self = this;
+        var self = this,
+            data = {};
         var callback = function(msg){
             if(typeof msg == 'object' && msg.data){
                 // 这里还可以获取发送源
@@ -39,6 +40,8 @@ window.ChangyanMsg = (function(){
             }
             // 剥离消息前缀
             msg = msg.slice(prefix.length);
+            // 将string转为json
+            msg = eval("(" + msg + ")")
             for(var i = 0; i < self.listenFunc.length; i++){
                 self.listenFunc[i](msg);
             }
@@ -57,7 +60,18 @@ window.ChangyanMsg = (function(){
         }
     };
     ChangyanMsg.prototype.post  = function(msg, target, origin) {
-        msg = msg.toString();
+        if(typeof msg == 'object'){
+            var json2str = function (o) {
+                var arr = [];
+                var fmt = function(s) {
+                    if (typeof s == 'object' && s != null) return json2str(s);
+                    return /^(string|number)$/.test(typeof s) ? "'" + s + "'" : s;
+                }
+                for (var i in o) arr.push("'" + i + "':" + fmt(o[i]));
+                return '{' + arr.join(',') + '}';
+            }
+            msg = json2str(msg);
+        }
         if ( supportPostMessage ){
             // IE8+ 以及现代浏览器支持
             target.postMessage(prefix + msg, origin)
