@@ -12,15 +12,13 @@ window.ChangyanMsg = (function(){
     "use strict"
     var prefix = "[PROJECT_NAME+NES_NAME]",// 消息前缀
         supportPostMessage = 'postMessage' in window;
-    function ChangyanMsg(msgName, projectName){
+    function ChangyanMsg(projectName){
         /**
          * @param
-         * msgName{string}: 消息的名称也就是key
          * projectName{string}: 项目的名称
          */
-        this.name = msgName;
         this.listenFunc = []; // 消息监听函数
-        prefix = (projectName + msgName) || prefix;
+        prefix = (projectName) || prefix;
         if(typeof prefix !== 'string') {
             prefix = prefix.toString();
         }
@@ -59,6 +57,7 @@ window.ChangyanMsg = (function(){
         }
     };
     ChangyanMsg.prototype.post  = function(msg, target, origin) {
+        msg = msg.toString();
         if ( supportPostMessage ){
             // IE8+ 以及现代浏览器支持
             target.postMessage(prefix + msg, origin)
