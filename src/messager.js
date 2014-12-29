@@ -1,57 +1,68 @@
-
+/*jslint browser: true,
+vars: true, nomen: true,
+indent: 4, maxlen: 80,
+plusplus: true, sloppy: true,
+newcap: true, sub: true,
+regexp: true,
+continue: true*/
+/*global console: true*/
 /**
- *
- * @description iframe跨域通信简易组件.
+ * iframe跨域通信简易组件.
  * @author 郭豪
- * @version 1.0
- * 
- * 
+ * @version 2.0
  */
-
-window.ChangyanMsg = (function(){
-    "use strict"
-    var prefix = "[PROJECT_NAME]",// 消息前缀
+window.Messager = (function() {
+    'use strict';
+    var prefix = '[PROJECT_NAME]',// 消息前缀
         supportPostMessage = 'postMessage' in window;
-    function ChangyanMsg(projectName){
-        /**
-         * @param
-         * projectName{string}: 项目的名称
-         */
+    /**
+     * Messager类.
+     * @param {string} projectName - 项目名称.
+     * @param {HTMLObject} target - 目的窗口window对象
+     * @param {string} origin - 规定哪些窗口接受消息
+     */
+    function Messager(projectName, target, origin) {
+        if(!origin){
+            origin = '*';
+        }
         this.listenFunc = []; // 消息监听函数
+        this.target = target;
+        this.origin = origin;
         prefix = (projectName) || prefix;
-        if(typeof prefix !== 'string') {
+        if (typeof prefix !== 'string') {
             prefix = prefix.toString();
         }
         this.init();// 初始化监听函数
     }
-
     // 初始化消息监听回调函数
-    ChangyanMsg.prototype.init = function(){
-        var self = this,
-            data = {};
-        var callback = function(msg){
-            if(typeof msg == 'object' && msg.data){
+    Messager.prototype.init = function() {
+        var self = this;
+        /**
+         * 接受到消息后的回调函数.
+         * @param {Object json} msg - 传输的消息.
+         */
+        var callback = function(msg) {
+            if (typeof msg == 'object' && msg.data) {
                 // 这里还可以获取发送源
                 msg = msg.data; // 传输的数据
             }
             // 验证是否是匹配的信息
-            if(prefix != msg.substring(0,prefix.length)){
+            if (prefix != msg.substring(0, prefix.length)) {
                 return;
             }
             // 剥离消息前缀
             msg = msg.slice(prefix.length);
             // 将string转为json
-            msg = eval("(" + msg + ")")
-            for(var i = 0; i < self.listenFunc.length; i++){
+            msg = eval('(' + msg + ')');
+            for (var i = 0; i < self.listenFunc.length; i++) {
                 self.listenFunc[i](msg);
             }
-
         };
-        if ( supportPostMessage ){
+        if (supportPostMessage) {
             // 绑定事件监听
-            if ( 'addEventListener' in document ) {
+            if ('addEventListener' in document) {
                 window.addEventListener('message', callback, false);
-            } else if ( 'attachEvent' in document ) {
+            } else if ('attachEvent' in document) {
                 window.attachEvent('onmessage', callback);
             }
         } else {
@@ -59,33 +70,40 @@ window.ChangyanMsg = (function(){
             window.navigator[prefix + this.name] = callback;
         }
     };
-    ChangyanMsg.prototype.post  = function(msg, target, origin) {
-        if(typeof msg == 'object'){
-            var json2str = function (o) {
+    /**
+     * 发送消息.
+     * @param {Object json} msg - 传输的消息.
+     */
+    Messager.prototype.post = function(msg) {
+        if (typeof msg == 'object') {
+            var json2str = function(o) {
                 var arr = [];
                 var fmt = function(s) {
                     if (typeof s == 'object' && s != null) return json2str(s);
-                    return /^(string|number)$/.test(typeof s) ? "'" + s + "'" : s;
-                }
+                    return /^(string|number)$/.test(typeof s) ?
+                        "'" + s + "'" : s;
+                };
                 for (var i in o) arr.push("'" + i + "':" + fmt(o[i]));
                 return '{' + arr.join(',') + '}';
-            }
+            };
             msg = json2str(msg);
+        } else {
+            throw '请传输json数据';
         }
-        if ( supportPostMessage ){
+        // 传输的信息的长度
+//        var msgLen = msg.length;
+        if (supportPostMessage) {
             // IE8+ 以及现代浏览器支持
-            target.postMessage(prefix + msg, origin)
+            this.target.postMessage(prefix + msg, this.origin);
         } else {
             // 兼容IE 6/7
                 var targetFunc = window.navigator[prefix + this.name];
-                if ( typeof targetFunc == 'function' ) {
+                if (typeof targetFunc == 'function') {
                     targetFunc(prefix + msg, window);
                 }
         }
     };
-    ChangyanMsg.prototype.listen = function(callback){
+    Messager.prototype.listen = function(callback) {
         this.listenFunc.push(callback);
     };
-    return ChangyanMsg;
-
-})();
+    return Messager; })();
