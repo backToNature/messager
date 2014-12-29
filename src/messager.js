@@ -40,7 +40,7 @@ window.Messager = (function() {
         var self = this;
         /**
          * 接受到消息后的回调函数.
-         * @param {Object json} msg - 传输的消息.
+         * @param {Object json} msg - 传输的消息，长度限制为10000字节.
          */
         var callback = function(msg) {
             if (typeof msg == 'object' && msg.data) {
