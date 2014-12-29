@@ -1,10 +1,10 @@
 /*jslint browser: true,
-vars: true, nomen: true,
-indent: 4, maxlen: 80,
-plusplus: true, sloppy: true,
-newcap: true, sub: true,
-regexp: true,
-continue: true*/
+ vars: true, nomen: true,
+ indent: 4, maxlen: 80,
+ plusplus: true, sloppy: true,
+ newcap: true, sub: true,
+ regexp: true,
+ continue: true*/
 /*global console: true*/
 /**
  * iframe跨域通信简易组件.
@@ -55,9 +55,14 @@ window.Messager = (function() {
             msg = msg.slice(prefix.length);
             // 将string转为json
             msg = eval('(' + msg + ')');
-            for (var i = 0; i < self.listenFunc.length; i++) {
-                self.listenFunc[i](msg);
+            if (supportPostMessage) {
+                for (var i = 0; i < self.listenFunc.length; i++) {
+                    self.listenFunc[i](msg);
+                }
+            } else {
+                window.navigator.listenFunc(msg);
             }
+
         };
         if (supportPostMessage) {
             // 绑定事件监听
@@ -96,8 +101,6 @@ window.Messager = (function() {
             if (supportConsole) {
                 console.log('数据长度超过限制');
                 return;
-            } else {
-                return;
             }
         }
         if (supportPostMessage) {
@@ -105,13 +108,17 @@ window.Messager = (function() {
             this.target.postMessage(prefix + msg, this.origin);
         } else {
             // 兼容IE 6/7
-                var targetFunc = window.navigator[prefix + this.name];
-                if (typeof targetFunc == 'function') {
-                    targetFunc(prefix + msg, window);
-                }
+            var targetFunc = window.navigator[prefix + this.name];
+            if (typeof targetFunc == 'function') {
+                targetFunc(prefix + msg, this.target);
+            }
         }
     };
     Messager.prototype.listen = function(callback) {
-        this.listenFunc.push(callback);
+        if (supportPostMessage) {
+            this.listenFunc.push(callback);
+        } else {
+            window.navigator.listenFunc = callback;
+        }
     };
     return Messager; })();
