@@ -48,11 +48,11 @@ window.Messager = (function() {
                 msg = msg.data; // 传输的数据
             }
             // 验证是否是匹配的信息
-            if (prefix != msg.substring(0, prefix.length)) {
+            if (prefix != msg.substring(0, msg.indexOf('|cy|'))) {
                 return;
             }
             // 剥离消息前缀
-            msg = msg.slice(prefix.length);
+            msg = msg.slice(prefix.length + 4);
             // 将string转为json
             msg = eval('(' + msg + ')');
             if (supportPostMessage) {
@@ -73,7 +73,7 @@ window.Messager = (function() {
             }
         } else {
             // 兼容IE 6/7
-            window.navigator[prefix + this.name] = callback;
+            window.navigator[prefix + '|cy|' + this.name] = callback;
         }
     };
     /**
@@ -105,10 +105,10 @@ window.Messager = (function() {
         }
         if (supportPostMessage) {
             // IE8+ 以及现代浏览器支持
-            this.target.postMessage(prefix + msg, this.origin);
+            this.target.postMessage(prefix + '|cy|' + msg, this.origin);
         } else {
             // 兼容IE 6/7
-            var targetFunc = window.navigator[prefix + this.name];
+            var targetFunc = window.navigator[prefix + '|cy|' + this.name];
             if (typeof targetFunc == 'function') {
                 targetFunc(prefix + msg, this.target);
             }
