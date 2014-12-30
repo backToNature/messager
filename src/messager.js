@@ -23,7 +23,7 @@ window.Messager = (function() {
      * @param {string} origin - 规定哪些窗口接受消息
      */
     function Messager(projectName, target, origin) {
-        if(!origin){
+        if (!origin) {
             origin = '*';
         }
         this.listenFunc = []; // 消息监听函数
