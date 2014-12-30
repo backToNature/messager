@@ -12,11 +12,12 @@
         var frame = document.getElementById("frame");
         var messager = new Messager("changyan",frame.contentWindow);
         messager.listen(function(msg){
-            alert(msg.code);
+            alert(msg);
         });
         var  data1 = '{"code":304,"data":[{"appid":"我爱","comment_0":156830,"comment_10":841,"comment_43":1582,"comment_60":685,"comment_96":433749,"comment_audited_0":110957,"comment_audited_10":449,"comment_audited_43":987,"comment_audited_60":487,"comment_audited_96":433749,"time":"20141217","topic_0":9474,"topic_10":561,"topic_43":766,"topic_60":374,"topic_96":24,"topic_audited_0":6815,"topic_audited_10":295,"topic_audited_43":526,"topic_audited_60":280,"topic_audited_96":24,"user_0":54132,"user_10":707,"user_43":847,"user_60":369,"user_96":47417,"user_audited_0":32270,"user_audited_10":413,"user_audited_43":602,"user_audited_60":276,"user_audited_96":47417}],"message":"success"}';
+        var data2 = 'xxxxx';
         document.getElementById('button').onclick = function () {
-            messager.post(eval("(" + data1 + ")"));
+            messager.post(data1);
         };
     </script>
 </body>

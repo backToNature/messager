@@ -11,11 +11,12 @@
  * @author 郭豪
  * @version 2.0
  */
-window.Messager = (function() {
+window.Messager = (function () {
     'use strict';
     var prefix = '[PROJECT_NAME]',// 消息前缀
         supportPostMessage = 'postMessage' in window,
-        supportConsole = 'console' in window;
+        // supportConsole = 'console' in window;
+        console = window.console || { log: function (err) {alert(err); }};
     /**
      * Messager类.
      * @param {string} projectName - 项目名称.
@@ -27,6 +28,9 @@ window.Messager = (function() {
             origin = '*';
         }
         this.listenFunc = []; // 消息监听函数
+        if (!supportPostMessage) {
+            window.navigator.listenFunc = [];
+        }
         this.target = target;
         this.origin = origin;
         prefix = (projectName) || prefix;
@@ -36,33 +40,30 @@ window.Messager = (function() {
         this.init();// 初始化监听函数
     }
     // 初始化消息监听回调函数
-    Messager.prototype.init = function() {
+    Messager.prototype.init = function () {
         var self = this;
         /**
          * 接受到消息后的回调函数.
-         * @param {Object json} msg - 传输的消息，长度限制为10000字节.
+         * @param {string} msg - 传输的消息，长度限制为10000字节.
          */
-        var callback = function(msg) {
-            if (typeof msg == 'object' && msg.data) {
-                // 这里还可以获取发送源
-                msg = msg.data; // 传输的数据
-            }
+        var callback = function (msg) {
             // 验证是否是匹配的信息
-            if (prefix != msg.substring(0, msg.indexOf('|cy|'))) {
+            if (prefix !== msg.substring(0, msg.indexOf('|cy|'))) {
                 return;
             }
             // 剥离消息前缀
             msg = msg.slice(prefix.length + 4);
-            // 将string转为json
-            msg = eval('(' + msg + ')');
+            // 执行用户自定义回调
+            var i;
             if (supportPostMessage) {
-                for (var i = 0; i < self.listenFunc.length; i++) {
+                for (i = 0; i < self.listenFunc.length; i++) {
                     self.listenFunc[i](msg);
                 }
             } else {
-                window.navigator.listenFunc(msg);
+                for (i = 0; i < window.navigator.listenFunc.length; i++) {
+                    window.navigator.listenFunc[i](msg);
+                }
             }
-
         };
         if (supportPostMessage) {
             // 绑定事件监听
@@ -73,52 +74,43 @@ window.Messager = (function() {
             }
         } else {
             // 兼容IE 6/7
-            window.navigator[prefix + '|cy|' + this.name] = callback;
+            window.navigator.listenFunc[prefix + '|cy|'] = callback;
         }
     };
     /**
      * 发送消息.
-     * @param {Object json} msg - 传输的消息.
+     * @param {string} msg - 传输的消息.
      */
-    Messager.prototype.post = function(msg) {
-        if (typeof msg == 'object') {
-            var json2str = function(o) {
-                var arr = [];
-                var fmt = function(s) {
-                    if (typeof s == 'object' && s != null) return json2str(s);
-                    return /^(string|number)$/.test(typeof s) ?
-                        "'" + s + "'" : s;
-                };
-                for (var i in o) arr.push("'" + i + "':" + fmt(o[i]));
-                return '{' + arr.join(',') + '}';
-            };
-            msg = json2str(msg);
-        } else {
-            throw '请传输json数据';
+    Messager.prototype.post = function (msg) {
+        // 数据类型检测
+        if (typeof msg !== 'string') {
+            console.log('请输入字符串类型的数据;');
+            return;
         }
         // 信息长度检测
         if (msg.length >= 10000) {
-            if (supportConsole) {
                 console.log('数据长度超过限制');
                 return;
-            }
         }
         if (supportPostMessage) {
             // IE8+ 以及现代浏览器支持
             this.target.postMessage(prefix + '|cy|' + msg, this.origin);
         } else {
-            // 兼容IE 6/7
-            var targetFunc = window.navigator[prefix + '|cy|' + this.name];
-            if (typeof targetFunc == 'function') {
-                targetFunc(prefix + msg, this.target);
+            // 兼容IE6/7
+            var targetFunc = window.navigator.listenFunc[prefix + '|cy|'];
+            if (typeof targetFunc === 'function') {
+                targetFunc(prefix + '|cy|' + msg, this.target);
             }
         }
     };
-    Messager.prototype.listen = function(callback) {
+    Messager.prototype.listen = function (callback) {
         if (supportPostMessage) {
+            // IE8+ 以及现代浏览器支持
             this.listenFunc.push(callback);
         } else {
-            window.navigator.listenFunc = callback;
+            // 兼容IE6/7
+            window.navigator.listenFunc.push(callback);
         }
     };
-    return Messager; })();
+    return Messager;
+})();
