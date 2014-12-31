@@ -13,33 +13,33 @@
  */
 window.Messager = (function () {
     'use strict';
-    var prefix = '[PROJECT_NAME]',// 消息前缀
+    var prefix = '[PROJECT_NAME]', // 消息前缀
         supportPostMessage = 'postMessage' in window,
         // supportConsole = 'console' in window;
-        console = window.console || { log: function (err) {alert(err); }};
-        if (!supportPostMessage && !window.navigator.listenFunc) {
-            window.navigator.listenFunc = {};
-            window.navigator.userListen = {};
-        }
+        console = window.console || {
+            log: function (err) {
+                window.alert(err);
+            }
+        };
+    if (!supportPostMessage && !window.navigator.listenFunc) {
+        window.navigator.listenFunc = {};
+        window.navigator.userListen = {};
+    }
     /**
      * Messager类.
      * @param {string} projectName - 项目名称.
      * @param {HTMLObject} target - 目的窗口window对象
-     * @param {string} origin - 规定哪些窗口接受消息
      */
-    function Messager(projectName, target, name, origin) {
-        if (!origin) {
-            origin = '*';
-        }
+    function Messager(projectName, target, name) {
         this.listenFunc = []; // 消息监听函数
         this.target = target;
-        this.origin = origin;
         this.name = name;
-        prefix = (projectName) || prefix;
+        prefix = projectName || prefix;
         if (typeof prefix !== 'string') {
             prefix = prefix.toString();
         }
-        this.init();// 初始化监听函数
+        // 初始化监听函数
+        this.init();
     }
     // 初始化消息监听回调函数
     Messager.prototype.init = function () {
@@ -92,12 +92,12 @@ window.Messager = (function () {
         }
         // 信息长度检测
         if (msg.length >= 10000) {
-                console.log('数据长度超过限制');
-                return;
+            console.log('数据长度超过限制');
+            return;
         }
         if (supportPostMessage) {
             // IE8+ 以及现代浏览器支持
-            this.target.postMessage(prefix + name + '|cy|' + msg, this.origin);
+            this.target.postMessage(prefix + name + '|cy|' + msg, '*');
         } else {
             // 兼容IE6/7
             var targetFunc = window.navigator.listenFunc[prefix + name + '|cy|'];
