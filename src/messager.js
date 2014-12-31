@@ -17,22 +17,24 @@ window.Messager = (function () {
         supportPostMessage = 'postMessage' in window,
         // supportConsole = 'console' in window;
         console = window.console || { log: function (err) {alert(err); }};
+        if (!supportPostMessage && !window.navigator.listenFunc) {
+            window.navigator.listenFunc = {};
+            window.navigator.userListen = {};
+        }
     /**
      * Messager类.
      * @param {string} projectName - 项目名称.
      * @param {HTMLObject} target - 目的窗口window对象
      * @param {string} origin - 规定哪些窗口接受消息
      */
-    function Messager(projectName, target, origin) {
+    function Messager(projectName, target, name, origin) {
         if (!origin) {
             origin = '*';
         }
         this.listenFunc = []; // 消息监听函数
-        if (!supportPostMessage) {
-            window.navigator.listenFunc = [];
-        }
         this.target = target;
         this.origin = origin;
+        this.name = name;
         prefix = (projectName) || prefix;
         if (typeof prefix !== 'string') {
             prefix = prefix.toString();
@@ -51,11 +53,11 @@ window.Messager = (function () {
                 msg = msg.data;
             }
             // 验证是否是匹配的信息
-            if (prefix !== msg.substring(0, msg.indexOf('|cy|'))) {
+            if ((prefix + self.name) !== msg.substring(0, msg.indexOf('|cy|'))) {
                 return;
             }
             // 剥离消息前缀
-            msg = msg.slice(prefix.length + 4);
+            msg = msg.slice((prefix + self.name).length + 4);
             // 执行用户自定义回调
             var i;
             if (supportPostMessage) {
@@ -63,9 +65,7 @@ window.Messager = (function () {
                     self.listenFunc[i](msg);
                 }
             } else {
-                for (i = 0; i < window.navigator.listenFunc.length; i++) {
-                    window.navigator.listenFunc[i](msg);
-                }
+                window.navigator.userListen[prefix + self.name + '|cy|'](msg);
             }
         };
         if (supportPostMessage) {
@@ -77,14 +77,14 @@ window.Messager = (function () {
             }
         } else {
             // 兼容IE 6/7
-            window.navigator.listenFunc[prefix + '|cy|'] = callback;
+            window.navigator.listenFunc[prefix + this.name + '|cy|'] = callback;
         }
     };
     /**
      * 发送消息.
      * @param {string} msg - 传输的消息.
      */
-    Messager.prototype.post = function (msg) {
+    Messager.prototype.post = function (msg, name) {
         // 数据类型检测
         if (typeof msg !== 'string') {
             console.log('请输入字符串类型的数据;');
@@ -97,12 +97,12 @@ window.Messager = (function () {
         }
         if (supportPostMessage) {
             // IE8+ 以及现代浏览器支持
-            this.target.postMessage(prefix + '|cy|' + msg, this.origin);
+            this.target.postMessage(prefix + name + '|cy|' + msg, this.origin);
         } else {
             // 兼容IE6/7
-            var targetFunc = window.navigator.listenFunc[prefix + '|cy|'];
+            var targetFunc = window.navigator.listenFunc[prefix + name + '|cy|'];
             if (typeof targetFunc === 'function') {
-                targetFunc(prefix + '|cy|' + msg, this.target);
+                targetFunc(prefix + name + '|cy|' + msg);
             }
         }
     };
@@ -112,7 +112,7 @@ window.Messager = (function () {
             this.listenFunc.push(callback);
         } else {
             // 兼容IE6/7
-            window.navigator.listenFunc.push(callback);
+            window.navigator.userListen[prefix + this.name + '|cy|'] = callback;
         }
     };
     return Messager;
