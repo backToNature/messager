@@ -47,6 +47,9 @@ window.Messager = (function () {
          * @param {string} msg - 传输的消息，长度限制为10000字节.
          */
         var callback = function (msg) {
+            if (typeof msg === 'object') {
+                msg = msg.data;
+            }
             // 验证是否是匹配的信息
             if (prefix !== msg.substring(0, msg.indexOf('|cy|'))) {
                 return;
