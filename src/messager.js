@@ -15,7 +15,6 @@ window.Messager = (function () {
     'use strict';
     var prefix = '[PROJECT_NAME]', // 消息前缀
         supportPostMessage = 'postMessage' in window,
-        // supportConsole = 'console' in window;
         console = window.console || {
             log: function (err) {
                 window.alert(err);
@@ -29,6 +28,7 @@ window.Messager = (function () {
      * Messager类.
      * @param {string} projectName - 项目名称.
      * @param {HTMLObject} target - 目的窗口window对象
+     * @param {string} name - 消息名称
      */
     function Messager(projectName, target, name) {
         this.listenFunc = []; // 消息监听函数
@@ -83,6 +83,7 @@ window.Messager = (function () {
     /**
      * 发送消息.
      * @param {string} msg - 传输的消息.
+     * @param {string} name - 传输目的地名称
      */
     Messager.prototype.post = function (msg, name) {
         // 数据类型检测
