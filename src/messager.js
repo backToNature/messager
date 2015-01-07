@@ -19,7 +19,16 @@ window.Messager = (function () {
             log: function (err) {
                 window.alert(err);
             }
+        },
+        JSON = window.JSON || {
+            stringify : function (o) {
+
+            },
+            parse: function (str) {
+
+            }
         };
+
     if (!supportPostMessage && !window.navigator.listenFunc) {
         window.navigator.listenFunc = {};
         window.navigator.userListen = {};
@@ -49,8 +58,9 @@ window.Messager = (function () {
          * @param {string} msg - 传输的消息，长度限制为10000字节.
          */
         var callback = function (msg) {
+            var type = '',i;
             if (typeof msg === 'object') {
-                msg = msg.data;
+                msg = msg.data.toString();
             }
             // 验证是否是匹配的信息
             if ((prefix + self.name) !== msg.substring(0, msg.indexOf('|cy|'))) {
@@ -58,8 +68,12 @@ window.Messager = (function () {
             }
             // 剥离消息前缀
             msg = msg.slice((prefix + self.name).length + 4);
+            if (msg.indexOf('CY_TYPE_OBJECT') >= 0) {
+                type = 'object';
+                msg = msg.replace('CY_TYPE_OBJECT','');
+                msg = JSON.parse(msg);
+            }
             // 执行用户自定义回调
-            var i;
             if (supportPostMessage) {
                 for (i = 0; i < self.listenFunc.length; i++) {
                     self.listenFunc[i](msg);
@@ -86,11 +100,17 @@ window.Messager = (function () {
      * @param {string} name - 传输目的地名称
      */
     Messager.prototype.post = function (msg, name) {
+        var type = '';
         // 数据类型检测
-        if (typeof msg !== 'string') {
-            console.log('请输入字符串类型的数据;');
+        if (typeof msg !== 'string' && typeof msg !== 'object') {
+            console.log('请输入正确的数据类型;');
             return;
         }
+        if (typeof msg == 'object') {
+            type = 'CY_TYPE_OBJECT';
+            msg = JSON.stringify(msg);
+        }
+        msg = type + msg; 
         // 信息长度检测
         if (msg.length >= 10000) {
             console.log('数据长度超过限制');
