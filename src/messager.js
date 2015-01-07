@@ -11,6 +11,7 @@
  * @author 郭豪
  * @version 2.0
  */
+
 window.Messager = (function () {
     'use strict';
     var prefix = '[PROJECT_NAME]', // 消息前缀
@@ -19,16 +20,12 @@ window.Messager = (function () {
             log: function (err) {
                 window.alert(err);
             }
-        },
-        JSON = window.JSON || {
-            stringify : function (o) {
-
-            },
-            parse: function (str) {
-
-            }
         };
-
+        if (!window.JSON) {
+            var baseScript = document.createElement('script');
+            baseScript.src = 'http://libs.baidu.com/json/json2/json2.js';
+            document.getElementsByTagName("head")[0].appendChild(baseScript);
+        }
     if (!supportPostMessage && !window.navigator.listenFunc) {
         window.navigator.listenFunc = {};
         window.navigator.userListen = {};
@@ -74,7 +71,7 @@ window.Messager = (function () {
                 msg = JSON.parse(msg);
             }
             // 执行用户自定义回调
-            if (supportPostMessage) {
+            if (supportPostMessage) {Ï
                 for (i = 0; i < self.listenFunc.length; i++) {
                     self.listenFunc[i](msg);
                 }
