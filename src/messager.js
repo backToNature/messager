@@ -133,5 +133,15 @@ window.Messager = (function () {
             window.navigator.userListen[prefix + this.name + '|cy|'] = callback;
         }
     };
+        // 解除监听
+    Messager.prototype.destrory = function () {
+        if (supportPostMessage) {
+            // IE8+ 以及现代浏览器支持
+            this.listenFunc.pop();
+        } else {
+            // 兼容IE6/7
+            window.navigator.userListen[prefix + this.name + '|cy|'] = null;
+        }
+    };
     return Messager;
 })();
